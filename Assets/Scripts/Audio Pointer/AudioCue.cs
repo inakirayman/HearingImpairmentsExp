@@ -20,11 +20,11 @@ public class AudioCue : MonoBehaviour
         _target = GetComponent<Target>();
         _audioSource = GetComponent<AudioSource>();
     }
-
+ 
     public void PlaySound()
     {
         _audioSource.Play();
-        if (_hasTargeting)
+        if (AudioExperimentManager.Instance.HasTargeting)
         {
             _target.enabled = true;
         }
@@ -33,7 +33,7 @@ public class AudioCue : MonoBehaviour
     public void StopSound()
     {
         _audioSource.Stop();
-        if (_hasTargeting)
+        if (AudioExperimentManager.Instance.HasTargeting)
         {
             _target.enabled = false;
         }

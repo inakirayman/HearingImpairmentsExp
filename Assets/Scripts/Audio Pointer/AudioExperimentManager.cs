@@ -13,6 +13,8 @@ public class AudioExperimentManager : MonoBehaviour
     private int _experimentCount;
     private List<TestResult> _testResults = new List<TestResult>();
     private AudioCue _correctAudioCue; // Variable to store the correct AudioCue for the current experiment
+    [SerializeField] private bool _hasTargeting =false;
+    public bool HasTargeting => _hasTargeting;
 
     [SerializeField] private int _randomSeed = 42; // Seed for randomization, can be changed in the inspector
 
