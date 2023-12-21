@@ -9,8 +9,7 @@ public class Delay : MonoBehaviour
     {
         // Start the experiment after a delay of 3 seconds
 
-        Cursor.visible = false;
-        Cursor.lockState = CursorLockMode.Locked;
+        
         StartCoroutine(DelayedStartExperiment());
     }
 

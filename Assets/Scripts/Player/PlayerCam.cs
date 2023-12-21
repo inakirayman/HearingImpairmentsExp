@@ -25,7 +25,15 @@ public class PlayerCam : MonoBehaviour
 
     public void UnlockCam()
     {
+        Cursor.visible = false;
+        Cursor.lockState = CursorLockMode.Locked;
         _isActive = true;
+    }
+    public void LockCam()
+    {
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
+        _isActive = false;
     }
 
     private void Update()

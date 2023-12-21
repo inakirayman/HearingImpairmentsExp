@@ -14,9 +14,13 @@ public class AudioExperimentManager : MonoBehaviour
     private List<TestResult> _testResults = new List<TestResult>();
     private AudioCue _correctAudioCue; // Variable to store the correct AudioCue for the current experiment
     [SerializeField] private bool _hasTargeting =false;
+
     public bool HasTargeting => _hasTargeting;
 
-    [SerializeField] private int _randomSeed = 42; // Seed for randomization, can be changed in the inspector
+    
+    [SerializeField] private float _maxTime =15;
+
+
 
     // Add a class to represent test results
     public class TestResult
@@ -32,9 +36,9 @@ public class AudioExperimentManager : MonoBehaviour
         {
             Instance = this;
         }
-
+        
         // Set the seed for randomization
-        Random.InitState(_randomSeed);
+        
 
         // Get all objects with the tag "Speakers"
         GameObject[] speakers = GameObject.FindGameObjectsWithTag("Speakers");
@@ -58,7 +62,11 @@ public class AudioExperimentManager : MonoBehaviour
             _isExperimentRunning = true;
 
             // Randomly choose an AudioCue as the correct one
-            int randomIndex = Random.Range(0, _audioCues.Count);
+            int randomIndex;
+            do
+            {
+                randomIndex = Random.Range(0, _audioCues.Count);
+            } while (_audioCues[randomIndex] == _correctAudioCue);
             _correctAudioCue = _audioCues[randomIndex];
 
             // Play the sound of the correct AudioCue
@@ -88,18 +96,43 @@ public class AudioExperimentManager : MonoBehaviour
         {
             return;
         }
+
+        if(_timer >= _maxTime)
+        {
+            Debug.Log("Time Up");
+            // Log the test result
+            TestResult result = new TestResult
+            {
+                Time = -1f,
+                ID = _correctAudioCue.ID,
+                Name = _correctAudioCue.Name
+            };
+            _testResults.Add(result);
+
+            _experimentCount++;
+
+            // Stop the sound
+            _correctAudioCue.StopSound();
+
+            // Schedule the next experiment after a 3-second delay
+            Invoke("StartNextExperiment", 2f);
+            _timer = 0;
+        }
+
     }
 
     // Call this method when an AudioCue is clicked
     public void AudioCueClicked(AudioCue clickedCue)
     {
+
         if (_isExperimentRunning)
         {
-            _timer += Time.deltaTime;
+
 
             // Check if the clicked AudioCue is the correct one
             if (clickedCue == _correctAudioCue)
             {
+                Debug.Log("Clicked the correct one");
                 // Log the test result
                 TestResult result = new TestResult
                 {
@@ -114,22 +147,34 @@ public class AudioExperimentManager : MonoBehaviour
                 // Stop the sound
                 _correctAudioCue.StopSound();
 
-                // Schedule the next experiment after a 3-second delay
+                
                 Invoke("StartNextExperiment", 2f);
             }
+            else
+            {
+                Debug.Log("Clicked the Incorrect one");
+            }
+
+
+
+
+
+
         }
     }
 
     private void StartNextExperiment()
     {
+
         if (_experimentCount >= 10)
         {
-            // Experiment completed, log the results to CSV
+            Debug.Log("Finished");           // Experiment completed, log the results to CSV
             LogResultsToCSV();
             _isExperimentRunning = false;
         }
         else
         {
+            Debug.Log("Starting next one    ");
             // Start the next experiment
             StartExperiment();
         }
@@ -138,21 +183,36 @@ public class AudioExperimentManager : MonoBehaviour
     private void LogResultsToCSV()
     {
         string filePath = "ExperimentResults.csv";
+        if (HasTargeting)
+        {
+            filePath = "ExperimentResultsWithTargeting.csv";
+        }
+        else
+        {
+            filePath = "ExperimentResultsWithoutTargeting.csv";
+        }
+
+
+
+
 
         using (StreamWriter writer = new StreamWriter(filePath))
         {
             // Write header
-            writer.WriteLine("Time; ID; Name");
+            writer.WriteLine("Time; Spearker ID; World Direction; Type Of Hearing; Seed; ParticipantID");
 
             // Write results
             foreach (TestResult result in _testResults)
             {
-                writer.WriteLine($"{result.Time}; {result.ID}; {result.Name}");
+                writer.WriteLine($"{result.Time}; {result.ID}; {result.Name}; {Manager.Instance.GetTypeOfHearing()}; " +
+                    $"{Manager.Instance.RandomSeed}; {SystemInfo.deviceUniqueIdentifier}");
             }
-
-            // Write total time in the last row
-            float totalTime = _testResults.Sum(result => result.Time);
-            writer.WriteLine($"{totalTime}; Total Time; ");
         }
+
+
+
+
+        
+        Manager.Instance.EnableEndWindow();
     }
 }
